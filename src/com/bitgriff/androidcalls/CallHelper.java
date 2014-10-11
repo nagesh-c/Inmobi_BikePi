@@ -1,10 +1,5 @@
 package com.bitgriff.androidcalls;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.http.message.BasicNameValuePair;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -27,7 +22,7 @@ public class CallHelper {
 	private class CallStateListener extends PhoneStateListener {
 		@Override
 		public void onCallStateChanged(int state, String incomingNumber) {
-			String url = "http://192.168.2.3:3000/test";
+			String url = "http://192.168.2.3:3000/call";
 			switch (state) {
 			case TelephonyManager.CALL_STATE_RINGING:
 				// called when someone is ringing to this phone
@@ -46,13 +41,13 @@ public class CallHelper {
 					Toast.makeText(ctx, 
 							"couldn't get contact name", 
 							Toast.LENGTH_LONG).show();
-					new RequestTask().execute(url,incomingNumber);
+					new RequestTask().execute(url,"Unknown",incomingNumber,"call");
 				}
 				else{
 					Toast.makeText(ctx, 
 							"contact name:" + contact_name, 
 							Toast.LENGTH_LONG).show();
-					new RequestTask().execute(url,contact_name);
+					new RequestTask().execute(url,contact_name,incomingNumber,"call");
 				}
 				
 				break;
@@ -78,7 +73,7 @@ public class CallHelper {
   
 	}
 */
-	private Context ctx;
+	public static Context ctx;
 	private TelephonyManager tm;
 	private CallStateListener callStateListener;
 	

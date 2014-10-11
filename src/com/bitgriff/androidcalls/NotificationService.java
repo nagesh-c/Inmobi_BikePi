@@ -1,43 +1,78 @@
 package com.bitgriff.androidcalls;
 
-import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
-import android.view.accessibility.AccessibilityEvent;
 
-public class NotificationService extends AccessibilityService {
+public class NotificationService extends NotificationListenerService {
 
-@Override
-public void onAccessibilityEvent(AccessibilityEvent event) {
-    // TODO Auto-generated method stub.
-	//Code when the event is caught
-		String msg = getEventText(event);
-		Log.d("error_inmobi","connecting");
-		String url = "http://192.168.2.3:3000/test";
-        new RequestTask().execute(url,msg);
-   }
-@Override
-public void onInterrupt() {
-    // TODO Auto-generated method stub.
-
-}
-
-@Override
-protected void onServiceConnected() {
-    super.onServiceConnected();
-    Log.v("service connected", "onServiceConnected");
-    AccessibilityServiceInfo info1 = new AccessibilityServiceInfo();
-    info1.flags = AccessibilityServiceInfo.DEFAULT;
-    info1.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;
-    info1.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
-    info1.packageNames = null;
-    setServiceInfo(info1);
-     }
-private String getEventText(AccessibilityEvent event) {
-    StringBuilder sb = new StringBuilder();
-    for (CharSequence s : event.getText()) {
-        sb.append(s);
+    private String TAG = this.getClass().getSimpleName();
+    private NLServiceReceiver nlservicereciver;
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        nlservicereciver = new NLServiceReceiver();
+        IntentFilter filter = new IntentFilter();
+        //filter.addAction("com.kpbird.nlsexample.NOTIFICATION_LISTENER_SERVICE_EXAMPLE");
+        registerReceiver(nlservicereciver,filter);
     }
-    return sb.toString();
-}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(nlservicereciver);
+    }
+
+    @Override
+    public void onNotificationPosted(StatusBarNotification sbn) {
+
+        Log.i(TAG,"**********  onNotificationPosted");
+        Log.i(TAG,"ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
+        Intent i = new  Intent("com.kpbird.nlsexample.NOTIFICATION_LISTENER_EXAMPLE");
+        i.putExtra("notification_event","onNotificationPosted :" + sbn.getPackageName() + "\n");
+        sendBroadcast(i);
+
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        Log.i(TAG,"********** onNOtificationRemoved");
+        Log.i(TAG,"ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText +"\t" + sbn.getPackageName());
+        Intent i = new  Intent("com.kpbird.nlsexample.NOTIFICATION_LISTENER_EXAMPLE");
+        i.putExtra("notification_event","onNotificationRemoved :" + sbn.getPackageName() + "\n");
+
+        sendBroadcast(i);
+    }
+
+    class NLServiceReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getStringExtra("command").equals("clearall")){
+            	NotificationService.this.cancelAllNotifications();
+            }
+            else if(intent.getStringExtra("command").equals("list")){
+                Intent i1 = new  Intent("com.kpbird.nlsexample.NOTIFICATION_LISTENER_EXAMPLE");
+                i1.putExtra("notification_event","=====================");
+                sendBroadcast(i1);
+                int i=1;
+                for (StatusBarNotification sbn : NotificationService.this.getActiveNotifications()) {
+                    Intent i2 = new  Intent("com.kpbird.nlsexample.NOTIFICATION_LISTENER_EXAMPLE");
+                    i2.putExtra("notification_event",i +" " + sbn.getPackageName() + "\n");
+                    sendBroadcast(i2);
+                    i++;
+                }
+                Intent i3 = new  Intent("com.kpbird.nlsexample.NOTIFICATION_LISTENER_EXAMPLE");
+                i3.putExtra("notification_event","===== Notification List ====");
+                sendBroadcast(i3);
+
+            }
+
+        }
+    }
+
 }

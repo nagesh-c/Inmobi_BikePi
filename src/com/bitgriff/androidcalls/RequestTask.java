@@ -33,7 +33,15 @@ public class RequestTask extends AsyncTask<String, String, String>{
         	}
         	//add parameters to link
         	List<BasicNameValuePair> params = new LinkedList<BasicNameValuePair>();
-        	params.add(new BasicNameValuePair("contact",uri[1]));
+        	if(uri[3] == "call"){
+        	params.add(new BasicNameValuePair("cName",uri[1]));
+        	params.add(new BasicNameValuePair("cNum", uri[2]));
+        	}
+        	if(uri[3] == "msg"){
+        		params.add(new BasicNameValuePair("cName", uri[1]));
+        		params.add(new BasicNameValuePair("cMsg", uri[2]));
+        		params.add(new BasicNameValuePair("cNum", uri[4]));
+        	}
         	URI main_uri = null;
 			try {
 				main_uri = new URI(uri[0] + URLEncodedUtils.format( params, "utf-8" ));
